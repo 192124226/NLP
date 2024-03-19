@@ -1,0 +1,53 @@
+class EarleyParser:
+    def __init__(self, grammar):
+        self.grammar = grammar
+
+    def parse(self, input_string):
+        chart = [set() for _ in range(len(input_string) + 1)]
+        chart[0] = {("S'", ('S',), 0)}  # Initialize chart with the start rule
+
+        for i in range(len(input_string) + 1):
+            while True:
+                added = False
+                for entry in list(chart[i]):  # Create a copy of the set before iterating
+                    nonterminal, production, dot_index = entry
+                    if dot_index < len(production) and production[dot_index].isupper():  # Predict
+                        next_symbol = production[dot_index]
+                        for rule in self.grammar[next_symbol]:
+                            chart[i].add((next_symbol, rule, 0))
+                            added = True
+                    elif dot_index == len(production):  # Complete
+                        for j, entry_j in enumerate(chart[nonterminal]):
+                            nt_j, production_j, dot_index_j = entry_j
+                            if dot_index_j == len(production_j) and nt_j == nonterminal and j != i:
+                                chart[i].add((nt_j, production_j, dot_index_j + 1))
+                                added = True
+                    elif i < len(input_string) and input_string[i] == production[dot_index]:  # Scan
+                        chart[i + 1].add((nonterminal, production, dot_index + 1))
+                        added = True
+                if not added:
+                    break
+
+        return any((nonterminal, production, len(production)) == ("S'", ('S',), 1) for nonterminal, production, _ in chart[-1])
+
+
+# Example usage:
+if __name__ == "__main__":
+    # Define the grammar rules
+    grammar = {
+        "S": [("NP", "VP")],
+        "NP": [("Det", "N"), ("NP", "PP")],
+        "VP": [("V", "NP"), ("VP", "PP")],
+        "PP": [("P", "NP")],
+        "Det": ["the", "a"],
+        "N": ["cat", "dog", "bat"],
+        "V": ["chased", "ate", "saw"],
+        "P": ["on", "in", "by"]
+    }
+
+    # Create an Earley parser object
+    parser = EarleyParser(grammar)
+
+    # Test parsing
+    print(parser.parse("the cat chased the dog"))  # Should return True
+    print(parser.parse("the dog chased"))          # Should return False
