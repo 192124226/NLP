@@ -1,0 +1,33 @@
+import re
+
+# Sample text
+text = "The quick brown fox jumps over the lazy dog."
+
+# Define a regular expression pattern
+pattern = r'\b\w{4}\b'  # Match words with exactly 4 characters
+
+# Use re.findall() to find all matches
+matches = re.findall(pattern, text)
+
+print("Matches found:")
+for match in matches:
+    print(match)
+
+# Use re.search() to find the first occurrence of the pattern
+match_obj = re.search(pattern, text)
+if match_obj:
+    print("\nFirst match found:")
+    print(match_obj.group())
+
+# Use re.match() to match the pattern at the beginning of the string
+match_obj = re.match(pattern, text)
+if match_obj:
+    print("\nMatch found at the beginning of the string:")
+    print(match_obj.group())
+else:
+    print("\nNo match found at the beginning of the string.")
+
+# Use re.finditer() to iterate over all matches
+print("\nIterating over all matches:")
+for match_obj in re.finditer(pattern, text):
+    print(match_obj.group(), "found at index", match_obj.start())
