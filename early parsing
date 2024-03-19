@@ -1,0 +1,55 @@
+class CFG:
+    def __init__(self, rules):
+        self.rules = rules
+
+    def parse(self, input_string):
+        chart = [[] for _ in range(len(input_string) + 1)]
+        chart[0] = [(rule, 0, 0) for rule in self.rules['S']]
+
+        for i in range(len(input_string) + 1):
+            while True:
+                added = False
+                for entry in chart[i]:
+                    rule, start, dot = entry
+                    if dot < len(rule):
+                        next_symbol = rule[dot]
+                        if next_symbol in self.rules:
+                            for new_rule in self.rules[next_symbol]:
+                                chart[i].append((new_rule, i, 0))
+                    elif i < len(input_string) and next_symbol == input_string[i]:
+                        chart[i + 1].append((rule, start, dot + 1))
+                        added = True
+                if not added:
+                    break
+
+                # Earley completion
+                for j in range(i + 1, len(chart)):
+                    for entry in chart[j]:
+                        _, start, dot = entry
+                        if dot == len(chart[start][start][0]):
+                            chart[i].append((chart[start][start][0], start, dot + 1))
+
+        return any(entry[0] == ('S', 0) and entry[1] == 0 and entry[2] == len(self.rules['S'][0]) for entry in chart[-1])
+
+
+# Example usage:
+if __name__ == "__main__":
+    # Define the grammar rules
+    grammar_rules = {
+        'S': [['NP', 'VP']],
+        'NP': [['Det', 'N']],
+        'VP': [['V', 'NP']],
+        'Det': ['the', 'a'],
+        'N': ['cat', 'dog'],
+        'V': ['chased', 'ate']
+    }
+
+    # Create a CFG object
+    cfg = CFG(grammar_rules)
+
+    # Test parsing
+    print(cfg.parse("the cat chased the dog"))  # Should return True
+    print(cfg.parse("a dog chased a cat"))      # Should return True
+    print(cfg.parse("the dog chased a cat"))    # Should return True
+    print(cfg.parse("a cat ate"))               # Should return True
+    print(cfg.parse("the dog chased"))          # Should return False
