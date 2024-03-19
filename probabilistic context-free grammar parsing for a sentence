@@ -1,0 +1,64 @@
+import math
+
+class PCFG:
+    def __init__(self, rules):
+        self.rules = rules
+
+    def parse(self, input_string):
+        chart = [[] for _ in range(len(input_string) + 1)]
+        chart[0] = [(rule, 0, 0, math.log(prob)) for rule, prob in self.rules['S']]
+
+        for i in range(len(input_string) + 1):
+            while True:
+                added = False
+                for entry in chart[i]:
+                    rule, start, dot, log_prob = entry
+                    if dot < len(rule):
+                        next_symbol = rule[dot]
+                        if next_symbol in self.rules:
+                            for new_rule, new_prob in self.rules[next_symbol]:
+                                new_log_prob = log_prob + math.log(new_prob)
+                                chart[i].append((new_rule, i, 0, new_log_prob))
+                    elif i < len(input_string) and next_symbol == input_string[i]:
+                        chart[i + 1].append((rule, start, dot + 1, log_prob))
+                        added = True
+                if not added:
+                    break
+
+                # Earley completion
+                for j in range(i + 1, len(chart)):
+                    for entry in chart[j]:
+                        _, start, dot, log_prob = entry
+                        if dot == len(chart[start][start][0]):
+                            new_rule, new_prob = chart[start][start][0]
+                            new_log_prob = log_prob + math.log(new_prob)
+                            chart[i].append((new_rule, start, dot + 1, new_log_prob))
+
+        return chart[-1]
+
+
+# Example usage:
+if __name__ == "__main__":
+    # Define the grammar rules with probabilities
+    grammar_rules = {
+        'S': [[['NP', 'VP'], 0.7]],
+        'NP': [[['Det', 'N'], 0.6], [['N'], 0.4]],
+        'VP': [[['V', 'NP'], 0.8], [['VP', 'PP'], 0.2]],
+        'Det': [['the', 1.0]],
+        'N': [['cat', 0.4], ['dog', 0.4], ['bird', 0.2]],
+        'V': [['chased', 0.7], ['ate', 0.3]],
+        'PP': [[['P', 'NP'], 1.0]],
+        'P': [['with', 1.0]]
+    }
+
+    # Create a PCFG object
+    pcfg = PCFG(grammar_rules)
+
+    # Parse and print the most probable parse
+    parse_result = pcfg.parse("the cat chased the dog with the bird")
+    if parse_result:
+        most_probable_parse = max(parse_result, key=lambda x: x[3])
+        print("Most Probable Parse:")
+        print(most_probable_parse)
+    else:
+        print("Failed to parse the input sentence.")
