@@ -1,0 +1,95 @@
+class EarleyParser:
+    def __init__(self, grammar):
+        self.grammar = grammar
+
+    def parse(self, input_string):
+        chart = [set() for _ in range(len(input_string) + 1)]
+        chart[0] = {("S'", ('S',), 0, None)}  # Initialize chart with the start rule
+
+        for i in range(len(input_string) + 1):
+            while True:
+                added = False
+                for entry in list(chart[i]):  # Create a copy of the set before iterating
+                    nonterminal, production, dot_index, parent = entry
+                    if dot_index < len(production) and production[dot_index].isupper():  # Predict
+                        next_symbol = production[dot_index]
+                        for rule in self.grammar[next_symbol]:
+                            chart[i].add((next_symbol, rule, 0, parent))
+                            added = True
+                    elif dot_index == len(production):  # Complete
+                        for j, entry_j in enumerate(chart[nonterminal]):
+                            nt_j, production_j, dot_index_j, parent_j = entry_j
+                            if dot_index_j == len(production_j) and nt_j == nonterminal and j != i:
+                                chart[i].add((nt_j, production_j, dot_index_j + 1, parent_j))
+                                added = True
+                    elif i < len(input_string) and input_string[i] == production[dot_index]:  # Scan
+                        chart[i + 1].add((nonterminal, production, dot_index + 1, parent))
+                        added = True
+                if not added:
+                    break
+
+        # Find the parse tree
+        for entry in chart[-1]:
+            if entry[0] == "S'" and entry[2] == 1:
+                return self.build_parse_tree(entry, input_string)
+
+    def build_parse_tree(self, entry, input_string):
+        nonterminal, production, _, _ = entry
+        tree = ParseTreeNode(nonterminal)
+        self.fill_parse_tree(tree, production, input_string)
+        return tree
+
+    def fill_parse_tree(self, parent_node, production, input_string):
+        for symbol in production:
+            if symbol.isupper():
+                for rule in self.grammar[symbol]:
+                    child_node = ParseTreeNode(symbol)
+                    parent_node.add_child(child_node)
+                    self.fill_parse_tree(child_node, rule, input_string)
+            else:
+                terminal_node = ParseTreeNode(symbol)
+                parent_node.add_child(terminal_node)
+                input_string = input_string[len(symbol):]  # Move the input pointer
+        return input_string
+
+
+class ParseTreeNode:
+    def __init__(self, value):
+        self.value = value
+        self.children = []
+
+    def add_child(self, child):
+        self.children.append(child)
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
+
+# Example usage:
+if __name__ == "__main__":
+    # Define the grammar rules
+    grammar = {
+        "S": [("NP", "VP")],
+        "NP": [("Det", "N"), ("NP", "PP")],
+        "VP": [("V", "NP"), ("VP", "PP")],
+        "PP": [("P", "NP")],
+        "Det": ["the", "a"],
+        "N": ["cat", "dog", "bat"],
+        "V": ["chased", "ate", "saw"],
+        "P": ["on", "in", "by"]
+    }
+
+    # Create an Earley parser object
+    parser = EarleyParser(grammar)
+
+    # Parse and print the parse tree
+    parse_tree = parser.parse("the cat chased the dog")
+    if parse_tree:
+        print("Parse Tree:")
+        print_parse_tree(parse_tree)
+    else:
+        print("Failed to parse the input sentence.")
+
