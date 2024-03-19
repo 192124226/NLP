@@ -1,0 +1,13 @@
+import nltk
+
+# Sample text
+text = "The quick brown fox jumps over the lazy dogs."
+
+# Tokenize the text into words
+words = nltk.word_tokenize(text)
+
+# Perform part-of-speech tagging
+pos_tags = nltk.pos_tag(words)
+
+print("Part-of-Speech Tags:")
+print(pos_tags)
