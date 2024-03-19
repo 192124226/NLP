@@ -1,0 +1,50 @@
+class PluralFiniteStateMachine:
+    def __init__(self):
+        self.transitions = {
+            'S0': {'singular_noun': 'S1'},
+            'S1': {'y': 'S2', 'f': 'S3', 'fe': 'S3', 'o': 'S4', 's': 'S5', 'ch': 'S6', 'sh': 'S7'},
+            'S2': {'': 'S5'},  # For words ending in 'y', replace 'y' with 'ies'
+            'S3': {'': 'S5'},  # For words ending in 'f' or 'fe', replace with 'ves'
+            'S4': {'': 'S5'},  # For words ending in 'o', append 'es'
+            'S5': {},           # Accepting state
+            'S6': {'': 'S5'},  # For words ending in 'ch', append 'es'
+            'S7': {'': 'S5'}   # For words ending in 'sh', append 'es'
+        }
+        self.current_state = 'S0'
+
+    def reset(self):
+        self.current_state = 'S0'
+
+    def generate_plural(self, noun):
+        plural_form = noun
+        for letter in noun[::-1]:  # Iterate over the word in reverse order
+            next_state = self.transitions[self.current_state].get(letter, None)
+            if next_state is None:
+                break
+            plural_form = plural_form[:-1]  # Remove the last character from the plural form
+            plural_form += self.get_plural_suffix(letter, next_state)
+            self.current_state = next_state
+        return plural_form
+
+    def get_plural_suffix(self, letter, next_state):
+        if next_state == 'S2':
+            return 'ies'
+        elif next_state == 'S3':
+            if letter == 'f':
+                return 'ves'
+            elif letter == 'e':
+                return 's'
+        elif next_state == 'S4':
+            return 'es'
+        elif next_state in {'S6', 'S7'}:
+            return 'es'
+        else:
+            return 's'
+
+# Example usage
+plural_fsm = PluralFiniteStateMachine()
+
+test_nouns = ['cat', 'dog', 'city', 'fox', 'wife', 'wolf', 'church', 'bus']
+for noun in test_nouns:
+    plural_form = plural_fsm.generate_plural(noun)
+    print(f"The plural of '{noun}' is '{plural_form}'")
