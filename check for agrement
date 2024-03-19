@@ -1,0 +1,51 @@
+import nltk
+from nltk import CFG, ChartParser
+
+def check_agreement(sentence):
+    grammar = CFG.fromstring("""
+        S -> NP VP
+        NP -> Det N | Det N PP
+        VP -> V | V NP | V PP | V NP PP
+        PP -> P NP
+        Det -> 'the' | 'a'
+        N -> 'boy' | 'girl' | 'dog' | 'cat'
+        V -> 'runs' | 'walks' | 'jumps'
+        P -> 'with' | 'in'
+    """)
+
+    parser = ChartParser(grammar)
+    tokens = nltk.word_tokenize(sentence)
+    parsed_trees = list(parser.parse(tokens))
+
+    if len(parsed_trees) == 0:
+        print("Sentence does not match the grammar.")
+        return
+
+    for tree in parsed_trees:
+        subject = find_subject(tree)
+        verb = find_verb(tree)
+        if subject and verb:
+            if subject[1] == verb[1]:
+                print("Agreement found: '{}' agrees with '{}'".format(subject[0], verb[0]))
+            else:
+                print("Disagreement found: '{}' does not agree with '{}'".format(subject[0], verb[0]))
+
+def find_subject(tree):
+    for subtree in tree.subtrees():
+        if subtree.label() == 'NP':
+            for word, pos in subtree.leaves():
+                if pos.startswith('N'):
+                    return (word, pos)
+    return None
+
+def find_verb(tree):
+    for subtree in tree.subtrees():
+        if subtree.label() == 'VP':
+            for word, pos in subtree.leaves():
+                if pos.startswith('V'):
+                    return (word, pos)
+    return None
+
+# Example usage
+sentence = "the boy runs"
+check_agreement(sentence)
