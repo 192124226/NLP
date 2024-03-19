@@ -1,0 +1,24 @@
+import re
+def parse_fopc(expression):
+    # Define regular expressions for parsing
+    predicate_pattern = r'[A-Za-z]+\([A-Za-z0-9, ]*\)'
+    variable_pattern = r'[A-Za-z]+'
+    constant_pattern = r'[0-9]+'
+    connective_pattern = r'AND|OR|NOT'
+    tokens = re.findall(f'{predicate_pattern}|{variable_pattern}|{constant_pattern}|{connective_pattern}', expression)
+    parsed_expression = []
+    for token in tokens:
+        if re.match(predicate_pattern, token):
+            predicate, *args = re.findall(r'[A-Za-z0-9]+', token)
+            parsed_expression.append((predicate, args))
+        elif re.match(variable_pattern, token):
+            parsed_expression.append(('variable', token))
+        elif re.match(constant_pattern, token):
+            parsed_expression.append(('constant', token))
+        elif re.match(connective_pattern, token):
+            parsed_expression.append(('connective', token))
+
+    return parsed_expression
+expression = "Likes(John, Pizza) AND NOT Hungry(Mary)"
+parsed_expression = parse_fopc(expression)
+print(parsed_expression)
