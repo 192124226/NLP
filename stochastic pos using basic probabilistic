@@ -1,0 +1,52 @@
+import nltk
+import random
+
+def train_pos_tagger(corpus):
+    pos_tagger = {}
+    
+    # Count occurrences of each word-tag pair
+    for sentence in corpus:
+        for word, tag in sentence:
+            if word not in pos_tagger:
+                pos_tagger[word] = {}
+            if tag not in pos_tagger[word]:
+                pos_tagger[word][tag] = 1
+            else:
+                pos_tagger[word][tag] += 1
+    
+    # Calculate probabilities
+    for word in pos_tagger:
+        total_count = sum(pos_tagger[word].values())
+        for tag in pos_tagger[word]:
+            pos_tagger[word][tag] /= total_count
+    
+    return pos_tagger
+
+def stochastic_pos_tagger(sentence, pos_tagger):
+    tagged_sentence = []
+    for word in sentence:
+        if word in pos_tagger:
+            tags = list(pos_tagger[word].keys())
+            probabilities = list(pos_tagger[word].values())
+            chosen_tag = random.choices(tags, weights=probabilities)[0]
+            tagged_sentence.append((word, chosen_tag))
+        else:
+            # If word is not in training data, assign a default tag
+            tagged_sentence.append((word, 'NN'))  # Default tag: Noun (NN)
+    return tagged_sentence
+
+# Example corpus
+corpus = [
+    [("I", "PRP"), ("like", "VBP"), ("to", "TO"), ("eat", "VB"), ("apples", "NNS"), ("and", "CC"), ("bananas", "NNS")],
+    [("He", "PRP"), ("plays", "VBZ"), ("football", "NN"), ("every", "DT"), ("Sunday", "NNP")]
+]
+
+# Train the POS tagger
+pos_tagger = train_pos_tagger(corpus)
+
+# Example sentence
+sentence = ["I", "like", "to", "play", "football", "with", "my", "friends"]
+
+# Perform stochastic POS tagging
+tagged_sentence = stochastic_pos_tagger(sentence, pos_tagger)
+print(tagged_sentence)
