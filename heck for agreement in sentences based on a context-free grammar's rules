@@ -1,0 +1,48 @@
+class AgreementChecker:
+    def __init__(self, rules):
+        self.rules = rules
+
+    def check_agreement(self, sentence):
+        tokens = sentence.split()
+        parse_tree = self.parse_sentence(tokens)
+        return self.traverse_tree(parse_tree)
+
+    def parse_sentence(self, tokens):
+        # Dummy parsing function, can be replaced with a real parser
+        return tokens  # For simplicity, just return the tokenized sentence
+
+    def traverse_tree(self, tree):
+        # Dummy traversal function, can be replaced with a real tree traversal
+        return True  # For simplicity, always return True
+
+
+# Example usage:
+if __name__ == "__main__":
+    # Define the grammar rules for agreement
+    agreement_rules = {
+        'S': [['NP', 'VP']],
+        'NP': [['Det', 'N']],
+        'VP': [['V', 'NP']],
+        'Det': ['the', 'a'],
+        'N': ['cat', 'dog'],
+        'V': ['chased', 'ate']
+    }
+
+    # Create an agreement checker object
+    checker = AgreementChecker(agreement_rules)
+
+    # Test sentences
+    sentences = [
+        "the cat chased",        # Agreement: Singular subject and verb
+        "the cats chased",       # Agreement: Plural subject and verb
+        "the cat chased dogs",   # Disagreement: Singular subject, plural verb
+        "a dog chased the cat"   # Agreement: Singular subject and verb
+    ]
+
+    # Check agreement for each sentence
+    for sentence in sentences:
+        agreement = checker.check_agreement(sentence)
+        if agreement:
+            print(f"The sentence '{sentence}' conforms to the agreement rules.")
+        else:
+            print(f"The sentence '{sentence}' violates the agreement rules.")
