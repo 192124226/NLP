@@ -1,0 +1,29 @@
+import re
+
+def rule_based_pos_tagger(sentence):
+    tagged_sentence = []
+    for word in sentence:
+        # Define regular expression patterns for different POS tags
+        if re.match(r'^[A-Z][a-z]*$', word):
+            tagged_sentence.append((word, 'NNP'))  # Proper noun
+        elif re.match(r'^[a-zA-Z]+ing$', word):
+            tagged_sentence.append((word, 'VBG'))  # Verb ending with -ing
+        elif re.match(r'^[a-zA-Z]+ed$', word):
+            tagged_sentence.append((word, 'VBD'))  # Verb ending with -ed
+        elif re.match(r'^\d+$', word):
+            tagged_sentence.append((word, 'CD'))   # Cardinal number
+        elif re.match(r'^[a-zA-Z]+(ly|able|ible)$', word):
+            tagged_sentence.append((word, 'RB'))   # Adverb
+        else:
+            tagged_sentence.append((word, 'NN'))   # Default to noun
+    return tagged_sentence
+
+# Example sentence
+sentence = "He was running quickly to catch the bus."
+
+# Tokenize the sentence
+words = sentence.split()
+
+# Perform rule-based POS tagging
+tagged_sentence = rule_based_pos_tagger(words)
+print(tagged_sentence)
