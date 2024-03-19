@@ -1,0 +1,40 @@
+import nltk
+from nltk.tag import untag
+from nltk.tag import DefaultTagger
+
+# Define transformation rules
+transformation_rules = [
+    (r'^[A-Z][a-z]*$', 'NNP'),   # Proper noun
+    (r'^[a-zA-Z]+ing$', 'VBG'),  # Verb ending with -ing
+    (r'^[a-zA-Z]+ed$', 'VBD'),   # Verb ending with -ed
+    (r'^\d+$', 'CD'),            # Cardinal number
+    (r'^[a-zA-Z]+(ly|able|ible)$', 'RB'),  # Adverb
+    (r'.*', 'NN')                # Default to noun
+]
+
+class TransformationTagger(DefaultTagger):
+    def __init__(self, transformation_rules):
+        self.transformation_rules = transformation_rules
+    
+    def tag(self, tokens):
+        tagged_tokens = []
+        for token in tokens:
+            for pattern, tag in self.transformation_rules:
+                if nltk.re.match(pattern, token):
+                    tagged_tokens.append((token, tag))
+                    break
+        return tagged_tokens
+
+# Example sentence
+sentence = "He was running quickly to catch the bus."
+
+# Tokenize the sentence
+tokens = nltk.word_tokenize(sentence)
+
+# Create transformation tagger
+transform_tagger = TransformationTagger(transformation_rules)
+
+# Tag the tokens
+tagged_tokens = transform_tagger.tag(tokens)
+
+print(tagged_tokens)
