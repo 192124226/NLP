@@ -1,0 +1,44 @@
+class CFG:
+    def __init__(self, rules):
+        self.rules = rules
+    def parse(self, input_string):
+        start_symbol = list(self.rules.keys())[0]
+        return self.parse_nonterminal(start_symbol, input_string)
+    def parse_nonterminal(self, nonterminal, input_string):
+        if len(input_string) == 0:
+            return False
+        if len(nonterminal) == 1 and nonterminal.isupper():
+            for rule in self.rules[nonterminal]:
+                if self.parse_rule(rule, input_string):
+                    return True
+            return False
+        else: 
+            return input_string.startswith(nonterminal)
+    def parse_rule(self, rule, input_string):
+        if len(rule) == 1:  # Terminal
+            return self.parse_nonterminal(rule, input_string)
+        elif len(rule) == 2:  # Nonterminal followed by nonterminal
+            for i in range(1, len(input_string)):
+                if self.parse_nonterminal(rule[0], input_string[:i]) and \
+                   self.parse_nonterminal(rule[1], input_string[i:]):
+                    return True
+            return False
+        else: 
+            return self.parse_nonterminal(rule[0], input_string[:1]) and \
+                   self.parse_nonterminal(rule[1], input_string[1:])
+
+if __name__ == "__main__":
+    grammar_rules = {
+        'S': [['NP', 'VP']],
+        'NP': [['Det', 'N']],
+        'VP': [['V', 'NP']],
+        'Det': ['the', 'a'],
+        'N': ['cat', 'dog'],
+        'V': ['chased', 'ate']
+    }
+    cfg = CFG(grammar_rules)
+    print(cfg.parse("the cat chased the dog"))  
+    print(cfg.parse("a dog chased a cat"))      
+    print(cfg.parse("the dog chased a cat"))   
+    print(cfg.parse("a cat ate"))               
+    print(cfg.parse("the dog chased"))          
