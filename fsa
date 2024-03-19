@@ -1,0 +1,33 @@
+class FiniteStateAutomaton:
+    def __init__(self):
+        self.states = {'q0', 'q1', 'q2'}
+        self.accept_states = {'q2'}
+        self.transitions = {
+            'q0': {'a': 'q0', 'b': 'q1'},
+            'q1': {'a': 'q0', 'b': 'q2'},
+            'q2': {'a': 'q0', 'b': 'q1'}
+        }
+        self.current_state = 'q0'
+
+    def reset(self):
+        self.current_state = 'q0'
+
+    def process_input(self, input_str):
+        for symbol in input_str:
+            if symbol not in {'a', 'b'}:
+                return False
+            self.current_state = self.transitions[self.current_state].get(symbol, None)
+            if self.current_state is None:
+                return False
+        return self.current_state in self.accept_states
+
+# Example usage
+automaton = FiniteStateAutomaton()
+
+test_strings = ['ab', 'aab', 'abb', 'aababb', 'baab', 'abab', 'baba']
+for test_str in test_strings:
+    automaton.reset()
+    if automaton.process_input(test_str):
+        print(f"'{test_str}' is accepted.")
+    else:
+        print(f"'{test_str}' is rejected.")
