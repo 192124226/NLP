@@ -1,0 +1,66 @@
+class CFG:
+    def __init__(self, rules):
+        self.rules = rules
+
+    def parse(self, input_string):
+        start_symbol = list(self.rules.keys())[0]
+        return self.parse_nonterminal(start_symbol, input_string)
+
+    def parse_nonterminal(self, nonterminal, input_string):
+        if len(input_string) == 0:
+            return False
+        if len(nonterminal) == 1 and nonterminal.isupper():  # Nonterminal
+            for rule in self.rules[nonterminal]:
+                remaining_string = input_string
+                success = True
+                for symbol in rule:
+                    if not self.parse_symbol(symbol, remaining_string):
+                        success = False
+                        break
+                    else:
+                        _, remaining_string = self.parse_symbol(symbol, remaining_string)
+                if success:
+                    return True
+            return False
+        else:  # Terminal
+            return self.parse_terminal(nonterminal, input_string)
+
+    def parse_symbol(self, symbol, input_string):
+        if len(input_string) == 0:
+            return False, input_string
+        if symbol in self.rules:
+            for rule in self.rules[symbol]:
+                if self.parse_nonterminal(rule[0], input_string):
+                    return True, input_string
+            return False, input_string
+        else:
+            return self.parse_terminal(symbol, input_string)
+
+    def parse_terminal(self, terminal, input_string):
+        if input_string.startswith(terminal):
+            return True, input_string[len(terminal):]
+        else:
+            return False, input_string
+
+
+# Example usage:
+if __name__ == "__main__":
+    # Define the grammar rules
+    grammar_rules = {
+        'S': [['NP', 'VP']],
+        'NP': [['Det', 'N']],
+        'VP': [['V', 'NP']],
+        'Det': ['the', 'a'],
+        'N': ['cat', 'dog'],
+        'V': ['chased', 'ate']
+    }
+
+    # Create a CFG object
+    cfg = CFG(grammar_rules)
+
+    # Test parsing
+    print(cfg.parse("the cat chased the dog"))  # Should return True
+    print(cfg.parse("a dog chased a cat"))      # Should return True
+    print(cfg.parse("the dog chased a cat"))    # Should return True
+    print(cfg.parse("a cat ate"))               # Should return True
+    print(cfg.parse("the dog chased"))          # Should return False
